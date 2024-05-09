@@ -6,6 +6,9 @@ import Input from './Input';
 import Button from './Button';
 import AuthSocailButton from './AuthSocailButton';
 import {BsGithub, BsGoogle} from 'react-icons/bs';
+import axios from 'axios';
+import toast from 'react-hot-toast';
+import { signIn } from 'next-auth/react';
 
 type Variant = 'LOGIN' | 'Register';
 const AuthForm = () => {
@@ -36,15 +39,33 @@ const AuthForm = () => {
     setIsLoading(true);
 
     if (variant === 'Register') {
-      // axios register
+      axios.post("/api/register",data).catch(()=>toast.error("Something went wrong")).finally(()=>setIsLoading(false))
     }
     if (variant === 'LOGIN') {
-      //nextAuth sign in
+      signIn("credentials",{
+        ...data,
+        redirect:false
+      }).then((callback)=>{
+        if(callback?.error){
+          toast.error("Invalid credentials")
+        }else if(callback?.ok){
+          toast.success("Logged in!")
+        }
+      }).finally(()=>setIsLoading(false))
     }
   };
-
+  
   const socialAction = (action: string) => {
     setIsLoading(true);
+    signIn(action,{
+      redirect:false
+    }).then((callback)=>{
+      if(callback?.error){
+        toast.error("Invalid credentials")
+      }else if(callback?.ok){
+        toast.success("Logged in!")
+      }
+    }).finally(()=>setIsLoading(false))
 
     //nextauth social sign in
   };
@@ -99,7 +120,7 @@ const AuthForm = () => {
               />
               <AuthSocailButton
                 icon={BsGoogle}
-                onClick={() => socialAction('github')}
+                onClick={() => socialAction('google')}
               />
             </div>
           </div>
